@@ -186,8 +186,8 @@ function initDashboard(data) {
   document.getElementById('last-updated').textContent = `Atualizado: ${upd.toLocaleString('pt-BR')}`;
 
   // ── Filter tasks ──
-  const active = tasks.filter(t => t.status !== 'Lixeira' && t.status !== 'Concluida');
-  const done = tasks.filter(t => t.status === 'Concluida');
+  const active = tasks.filter(t => t.status !== 'Lixeira' && t.status !== 'Concluída');
+  const done = tasks.filter(t => t.status === 'Concluída');
   const lixeira = tasks.filter(t => t.status === 'Lixeira');
   const allValid = tasks.filter(t => t.status !== 'Lixeira');
   const problems = active.filter(t => PROBLEM_STATUSES.includes(t.status));
@@ -200,7 +200,7 @@ function initDashboard(data) {
   const overdue = active.filter(t => t.deadline && new Date(t.deadline) < now);
 
   // ── Inspection pass rate ──
-  const inspectionDone = tasks.filter(t => ['Concluida', 'realizando vistoria'].includes(t.status));
+  const inspectionDone = tasks.filter(t => ['Concluída', 'Realizando vistoria'].includes(t.status));
   const inspectionFailed = tasks.filter(t => t.status === 'Vistoria reprovada');
   const totalInspections = inspectionDone.length + inspectionFailed.length;
   const inspRate = totalInspections > 0 ? Math.round((inspectionDone.length / totalInspections) * 100) : 0;
@@ -666,7 +666,7 @@ function renderInsights(tasks, active, done, problems, overdue, now, avgCycle, i
   }
 
   // ── SLA ANEEL Vistoria ──
-  const inInspection = active.filter(t => ['Solicitar vistoria', 'realizando vistoria'].includes(t.status));
+  const inInspection = active.filter(t => ['Solicitar vistoria', 'Realizando vistoria'].includes(t.status));
   inInspection.forEach(t => {
     const daysInStage = daysBetween(new Date(t.updated_at), now);
     if (daysInStage > 20) {
