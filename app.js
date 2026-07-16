@@ -61,17 +61,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Mobile toggle ──
   const mobileToggle = document.getElementById('mobile-toggle');
   const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('sidebar-overlay');
+  const sidebarOverlay = document.getElementById('sidebar-overlay');
   if (mobileToggle) {
     mobileToggle.addEventListener('click', () => {
       sidebar.classList.toggle('open');
-      overlay.classList.toggle('show');
+      sidebarOverlay.classList.toggle('show');
     });
   }
-  if (overlay) {
-    overlay.addEventListener('click', () => {
+  if (sidebarOverlay) {
+    sidebarOverlay.addEventListener('click', () => {
       sidebar.classList.remove('open');
-      overlay.classList.remove('show');
+      sidebarOverlay.classList.remove('show');
     });
   }
 
