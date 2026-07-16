@@ -4,6 +4,32 @@
 ══════════════════════════════════════════════════════════════ */
 
 document.addEventListener('DOMContentLoaded', () => {
+  // ── Authentication ──
+  const CORRECT_PASS = '10203040';
+  const overlay = document.getElementById('login-overlay');
+  const passInput = document.getElementById('login-password');
+  const loginBtn = document.getElementById('login-btn');
+  const loginError = document.getElementById('login-error');
+
+  if (localStorage.getItem('dashboard_auth') === 'true') {
+    overlay.classList.add('hidden');
+  } else {
+    const tryLogin = () => {
+      if (passInput.value === CORRECT_PASS) {
+        localStorage.setItem('dashboard_auth', 'true');
+        overlay.classList.add('hidden');
+        loginError.style.display = 'none';
+      } else {
+        loginError.style.display = 'block';
+        passInput.value = '';
+      }
+    };
+    loginBtn.addEventListener('click', tryLogin);
+    passInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') tryLogin();
+    });
+  }
+
   // ── Sidebar Navigation ──
   const navItems = document.querySelectorAll('.nav-item[data-tab]');
   const tabPanels = document.querySelectorAll('.tab-panel');
@@ -186,10 +212,10 @@ function initDashboard(data) {
   document.getElementById('last-updated').textContent = `Atualizado: ${upd.toLocaleString('pt-BR')}`;
 
   // ── Filter tasks ──
-  const active = tasks.filter(t => t.status !== 'Lixeira' && t.status !== 'Concluída' && t.status !== 'Antigos');
+  const active = tasks.filter(t => t.status !== 'Lixeira' && t.status !== 'Concluída' && !t.status.toLowerCase().includes('antigo'));
   const done = tasks.filter(t => t.status === 'Concluída');
   const lixeira = tasks.filter(t => t.status === 'Lixeira');
-  const allValid = tasks.filter(t => t.status !== 'Lixeira' && t.status !== 'Antigos');
+  const allValid = tasks.filter(t => t.status !== 'Lixeira' && !t.status.toLowerCase().includes('antigo'));
   const problems = active.filter(t => PROBLEM_STATUSES.includes(t.status));
 
   // ── Cycle time for completed ──
