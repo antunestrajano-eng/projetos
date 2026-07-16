@@ -186,10 +186,10 @@ function initDashboard(data) {
   document.getElementById('last-updated').textContent = `Atualizado: ${upd.toLocaleString('pt-BR')}`;
 
   // ── Filter tasks ──
-  const active = tasks.filter(t => t.status !== 'Lixeira' && t.status !== 'Concluída');
+  const active = tasks.filter(t => t.status !== 'Lixeira' && t.status !== 'Concluída' && t.status !== 'Antigos');
   const done = tasks.filter(t => t.status === 'Concluída');
   const lixeira = tasks.filter(t => t.status === 'Lixeira');
-  const allValid = tasks.filter(t => t.status !== 'Lixeira');
+  const allValid = tasks.filter(t => t.status !== 'Lixeira' && t.status !== 'Antigos');
   const problems = active.filter(t => PROBLEM_STATUSES.includes(t.status));
 
   // ── Cycle time for completed ──
