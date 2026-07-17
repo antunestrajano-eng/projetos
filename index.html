@@ -112,6 +112,13 @@
     <div class="topbar">
       <h1 class="topbar-title" id="page-title">Visão Geral</h1>
       <div class="topbar-right">
+        <div class="global-search-wrap" id="global-search-wrap">
+          <div class="global-search-input-wrap">
+            <svg class="global-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="global-search" class="global-search-input" placeholder="Buscar projeto, cliente ou responsável..." autocomplete="off" />
+          </div>
+          <div class="global-search-results" id="global-search-results"></div>
+        </div>
         <div class="topbar-updated">
           <div class="live-dot"></div>
           <span id="last-updated">Carregando...</span>
@@ -226,7 +233,13 @@
         </div>
         <div class="grid-2">
           <div class="card">
-            <div class="card-header"><h3>Tempo Médio por Etapa (dias)</h3></div>
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+              <h3 style="margin: 0;">Tempo Médio por Etapa</h3>
+              <div class="toggle-group" style="display: flex; gap: 0.25rem; background: var(--bg-body); padding: 0.25rem; border-radius: var(--radius-md);">
+                <button id="btn-time-inactive" class="btn-toggle active" style="padding: 0.25rem 0.75rem; font-size: 0.75rem; border: none; background: var(--bg-card); border-radius: var(--radius-sm); cursor: pointer; box-shadow: var(--shadow-sm); font-weight: 500;">Inativo (Parado)</button>
+                <button id="btn-time-real" class="btn-toggle" style="padding: 0.25rem 0.75rem; font-size: 0.75rem; border: none; background: transparent; color: var(--text-muted); border-radius: var(--radius-sm); cursor: pointer; font-weight: 500;">Permanência Real</button>
+              </div>
+            </div>
             <div class="card-body"><canvas id="chart-stage-time"></canvas></div>
           </div>
           <div class="card">

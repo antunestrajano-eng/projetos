@@ -283,6 +283,103 @@ function initDashboard(data) {
   document.getElementById('filter-comment-search').addEventListener('input', () => renderComments(tasks));
   document.getElementById('filter-approved-month').addEventListener('change', () => renderApprovedTab(tasks, now));
   document.getElementById('filter-approved-year').addEventListener('change', () => renderApprovedTab(tasks, now));
+
+  // ── Chart Toggles ──
+  const btnInactive = document.getElementById('btn-time-inactive');
+  const btnReal = document.getElementById('btn-time-real');
+  if (btnInactive && btnReal) {
+    btnInactive.addEventListener('click', () => {
+      btnInactive.classList.add('active');
+      btnInactive.style.background = 'var(--bg-card)';
+      btnInactive.style.color = 'var(--text)';
+      btnInactive.style.boxShadow = 'var(--shadow-sm)';
+      
+      btnReal.classList.remove('active');
+      btnReal.style.background = 'transparent';
+      btnReal.style.color = 'var(--text-muted)';
+      btnReal.style.boxShadow = 'none';
+      
+      renderStageTimeChart(active, now, 'inactive');
+    });
+    
+    btnReal.addEventListener('click', () => {
+      btnReal.classList.add('active');
+      btnReal.style.background = 'var(--bg-card)';
+      btnReal.style.color = 'var(--text)';
+      btnReal.style.boxShadow = 'var(--shadow-sm)';
+      
+      btnInactive.classList.remove('active');
+      btnInactive.style.background = 'transparent';
+      btnInactive.style.color = 'var(--text-muted)';
+      btnInactive.style.boxShadow = 'none';
+      
+      renderStageTimeChart(active, now, 'real');
+    });
+  }
+
+  // ── Global Search ──
+  initGlobalSearch(tasks);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GLOBAL SEARCH
+══════════════════════════════════════════════════════════════ */
+function initGlobalSearch(tasks) {
+  const searchInput = document.getElementById('global-search');
+  const resultsContainer = document.getElementById('global-search-results');
+  
+  if (!searchInput || !resultsContainer) return;
+
+  function performSearch() {
+    const query = searchInput.value.toLowerCase().trim();
+    if (!query) {
+      resultsContainer.classList.remove('active');
+      return;
+    }
+
+    const matched = tasks.filter(t => 
+      (t.title && t.title.toLowerCase().includes(query)) ||
+      (t.responsible && t.responsible.toLowerCase().includes(query))
+    ).slice(0, 8); // limit to top 8 results
+
+    if (matched.length === 0) {
+      resultsContainer.innerHTML = '<div class="search-result-empty">Nenhum projeto encontrado.</div>';
+    } else {
+      resultsContainer.innerHTML = matched.map(t => {
+        const bdg = getStatusBadge(t.status);
+        return `
+          <div class="search-result-item" onclick="alert('Projeto: ${t.title}\\nStatus: ${t.status}\\nResponsável: ${t.responsible}')">
+            <div class="search-result-title">${t.title}</div>
+            <div class="search-result-meta">
+              <span class="badge ${bdg}">${t.status}</span>
+              <span>👤 ${t.responsible}</span>
+              <span>📅 Criado em ${formatDate(t.created_at)}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    resultsContainer.classList.add('active');
+  }
+
+  // Event Listeners
+  searchInput.addEventListener('input', performSearch);
+  
+  // Close results when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#global-search-wrap')) {
+      resultsContainer.classList.remove('active');
+    }
+  });
+
+  // Focus input when pressing '/'
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '/' && document.activeElement !== searchInput && !document.activeElement.matches('input, textarea')) {
+      e.preventDefault();
+      searchInput.focus();
+    }
+  });
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -340,11 +437,20 @@ function renderResponsibleChart(active) {
   });
 }
 
-function renderStageTimeChart(active, now) {
+let stageTimeChartInstance = null;
+
+function renderStageTimeChart(active, now, mode = 'inactive') {
   const stageDays = {};
   const stageCounts = {};
+  
   active.forEach(t => {
-    const days = daysBetween(new Date(t.updated_at), now);
+    // Determine which date to use based on mode
+    let targetDate = t.updated_at;
+    if (mode === 'real' && t.stage_entered_at) {
+      targetDate = t.stage_entered_at;
+    }
+    
+    const days = daysBetween(new Date(targetDate), now);
     stageDays[t.status] = (stageDays[t.status] || 0) + days;
     stageCounts[t.status] = (stageCounts[t.status] || 0) + 1;
   });
@@ -353,26 +459,43 @@ function renderStageTimeChart(active, now) {
   const data = labels.map(s => Math.round(stageDays[s] / stageCounts[s]));
   const colors = labels.map(s => STAGE_COLORS[s]);
 
-  new Chart(document.getElementById('chart-stage-time'), {
-    type: 'bar',
-    data: {
-      labels: labels.map(l => l.length > 20 ? l.slice(0, 18) + '…' : l),
-      datasets: [{
-        label: 'Dias Médios',
-        data,
-        backgroundColor: colors,
-        borderRadius: 4,
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f1f5f9' } },
-        x: { ticks: { maxRotation: 45, font: { size: 10 } }, grid: { display: false } }
+  const ctx = document.getElementById('chart-stage-time');
+  
+  if (stageTimeChartInstance) {
+    stageTimeChartInstance.data.labels = labels.map(l => l.length > 20 ? l.slice(0, 18) + '…' : l);
+    stageTimeChartInstance.data.datasets[0].data = data;
+    stageTimeChartInstance.data.datasets[0].backgroundColor = colors;
+    stageTimeChartInstance.data.datasets[0].label = mode === 'real' ? 'Permanência Real' : 'Tempo Inativo';
+    stageTimeChartInstance.update();
+  } else {
+    stageTimeChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels.map(l => l.length > 20 ? l.slice(0, 18) + '…' : l),
+        datasets: [{
+          label: mode === 'real' ? 'Permanência Real' : 'Tempo Inativo',
+          data,
+          backgroundColor: colors,
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { 
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${ctx.raw} dias (${ctx.dataset.label})`
+            }
+          }
+        },
+        scales: {
+          y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f1f5f9' } },
+          x: { ticks: { maxRotation: 45, font: { size: 10 } }, grid: { display: false } }
+        }
       }
-    }
-  });
+    });
+  }
 }
 
 function renderBottleneckChart(active) {

@@ -1106,3 +1106,107 @@ tbody tr:hover { background: #f8fafc; }
   display: none;
   font-weight: 600;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   GLOBAL SEARCH
+══════════════════════════════════════════════════════════════ */
+.global-search-wrap {
+  position: relative;
+  margin-right: 1.5rem;
+}
+
+.global-search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.global-search-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--text-muted);
+}
+
+.global-search-input {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.5rem 1rem 0.5rem 2.5rem;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  width: 250px;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.global-search-input:focus {
+  width: 320px;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+}
+
+.global-search-results {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  width: 400px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 100;
+  display: none;
+}
+
+.global-search-results.active {
+  display: block;
+  animation: fadeSlideIn 0.2s ease-out;
+}
+
+.search-result-item {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover {
+  background: var(--bg-sidebar);
+}
+
+.search-result-title {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.search-result-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.search-result-empty {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .global-search-wrap {
+    display: none; /* Hide on very small screens or make it a button */
+  }
+}
