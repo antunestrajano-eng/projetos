@@ -11,23 +11,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const loginBtn = document.getElementById('login-btn');
   const loginError = document.getElementById('login-error');
 
-  if (localStorage.getItem('dashboard_auth') === 'true') {
+  const tryLogin = () => {
+    if (passInput.value === CORRECT_PASS) {
+      sessionStorage.setItem('_ca', passInput.value);
+      overlay.classList.add('hidden');
+      loginError.style.display = 'none';
+      loadData();
+    } else {
+      loginError.style.display = 'block';
+      passInput.value = '';
+    }
+  };
+  loginBtn.addEventListener('click', tryLogin);
+  passInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') tryLogin();
+  });
+
+  if (sessionStorage.getItem('_ca')) {
     overlay.classList.add('hidden');
-  } else {
-    const tryLogin = () => {
-      if (passInput.value === CORRECT_PASS) {
-        localStorage.setItem('dashboard_auth', 'true');
-        overlay.classList.add('hidden');
-        loginError.style.display = 'none';
-      } else {
-        loginError.style.display = 'block';
-        passInput.value = '';
-      }
-    };
-    loginBtn.addEventListener('click', tryLogin);
-    passInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') tryLogin();
-    });
+    loadData();
   }
 
   // ── Sidebar Navigation ──
@@ -107,14 +109,28 @@ document.addEventListener('DOMContentLoaded', () => {
     ]
   };
 
-  // ── Load Data ──
-  fetch(DATA_SOURCE)
-    .then(r => r.json())
-    .then(data => initDashboard(data))
-    .catch(err => {
-      console.warn('Aviso: Carregando dados locais mockados devido a restrições de CORS/rede no ambiente local:', err);
-      initDashboard(FALLBACK_MOCK_DATA);
-    });
+  // ── Load Data (envia pwd ao worker, mesmo padrão do dashboard comercial) ──
+  function loadData() {
+    const pwd = sessionStorage.getItem('_ca') || '';
+    const sep = DATA_SOURCE.includes('?') ? '&' : '?';
+    fetch(DATA_SOURCE + sep + 'pwd=' + encodeURIComponent(pwd))
+      .then(r => {
+        if (r.status === 401) {
+          sessionStorage.removeItem('_ca');
+          overlay.classList.remove('hidden');
+          loginError.style.display = 'block';
+          passInput.value = '';
+          throw new Error('unauthorized');
+        }
+        return r.json();
+      })
+      .then(data => initDashboard(data))
+      .catch(err => {
+        if (err.message === 'unauthorized') return;
+        console.warn('Aviso: Carregando dados locais mockados devido a restrições de CORS/rede no ambiente local:', err);
+        initDashboard(FALLBACK_MOCK_DATA);
+      });
+  }
 });
 
 /* ══════════════════════════════════════════════════════════════
